@@ -1,0 +1,29 @@
+---
+- name: Install certbot
+  when: "'certbot' not in ansible_facts.packages"
+  apt:
+      force_apt_get: false
+      name: certbot
+      state: present
+
+- name: Install LE
+  when: "'python3-certbot-nginx' not in ansible_facts.packages"
+  apt:
+      force_apt_get: false
+      name: python3-certbot-nginx
+      state: present
+
+- name: Generate certificate
+  shell: "certbot --nginx -d {{ project_domain }} --non-interactive --agree-tos -m {{ project_administrator_email }} --keep --redirect"
+
+- name: Upgrade IPv4 to HTTP/2
+  lineinfile:
+      path: "/etc/nginx/sites-enabled/{{ project_domain }}.conf"
+      regexp: 'listen 443 ssl;'
+      line: 'listen 443 ssl http2;'
+
+- name: Upgrade IPv6 to HTTP/2
+  lineinfile:
+      path: "/etc/nginx/sites-enabled/{{ project_domain }}.conf"
+      regexp: 'listen \[::]:443 ssl ipv6only=on;'
+      line: 'listen [::]:443 ssl http2 ipv6only=on;'

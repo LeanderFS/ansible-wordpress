@@ -1,0 +1,24 @@
+---
+-   hosts: webservers
+    become: true
+    connection: local
+    gather_facts: yes
+    vars_files:
+        - project.yaml
+    pre_tasks:
+        -   include: tasks/validate_project.yaml
+        -   include: tasks/common.yaml
+    roles:
+        - geerlingguy.nginx
+        - geerlingguy.php-versions
+        - geerlingguy.php
+        - geerlingguy.mysql
+        - geerlingguy.composer
+        - geerlingguy.java
+        - geerlingguy.elasticsearch
+    post_tasks:
+        -   include: tasks/certbot.yaml
+        -   include: tasks/wp-cli.yaml
+        -   include: tasks/cronjobs.yaml
+
+

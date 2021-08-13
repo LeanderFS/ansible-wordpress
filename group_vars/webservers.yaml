@@ -1,0 +1,104 @@
+---
+project_php_socket: "/var/run/php{{ project_php_version }}-fpm.sock"
+
+# NGINX vars (@see: https://github.com/geerlingguy/ansible-role-nginx)
+nginx_remove_default_vhost: true
+nginx_server_tokens: "off"
+nginx_conf_template: "{{ playbook_dir }}/templates/nginx/nginx.conf.j2"
+nginx_listen_ipv6: true
+nginx_vhosts:
+    -   listen: "80"
+        server_name: "{{ project_domain }}"
+        server_name_redirect: "www.{{ project_domain }}"
+        root: "{{ project_docroot }}"
+        index: "index.php"
+        template: "{{ playbook_dir }}/templates/nginx/vhost.conf.j2"
+        state: present
+        extra_parameters: |4
+            # LetsEncrypt passtrough
+            location /.well-known {
+                autoindex on;
+                auth_basic off;
+                root {{ project_docroot }};
+            }
+
+            location = /favicon.ico {
+                log_not_found off;
+                access_log off;
+            }
+
+            location = /robots.txt {
+                allow all;
+                log_not_found off;
+                access_log off;
+            }
+
+            location / {
+                try_files $uri $uri/ /index.php?$args;
+            }
+
+            location ~ \.php$ {
+                include fastcgi_params;
+                fastcgi_intercept_errors on;
+                fastcgi_pass unix:{{ project_php_socket }};
+                fastcgi_param  SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            }
+
+            location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+                expires max;
+                log_not_found off;
+            }
+
+# PHP vars
+php_version: "{{ project_php_version }}"
+php_versions_install_recommends: false
+php_fpm_listen: "{{ project_php_socket }}"
+
+php_webserver_daemon: "nginx"
+php_enable_php_fpm: true
+php_fpm_pm_max_children: 96
+php_fpm_pm_start_servers: 24
+php_fpm_pm_min_spare_servers: 24
+php_fpm_pm_max_spare_servers: 72
+php_memory_limit: "512M"
+php_date_timezone: "Europe/Amsterdam"
+php_source_configure_command: "--enable-fpm"
+php_packages_extra:
+    - "php{{ php_version }}-gd"
+    - "php{{ php_version }}-imagick"
+    - "php{{ php_version }}-mbstring"
+    - "php{{ php_version }}-zip"
+    - "php{{ php_version }}-intl"
+    - "php{{ php_version }}-bcmath"
+    - "php{{ php_version }}-zip"
+    - "php{{ php_version }}-apcu"
+    - "php{{ php_version }}-memcached"
+    - "php{{ php_version }}-mysql"
+    - "php{{ php_version }}-exif"
+
+
+# MySQL vars
+mysql_root_password: "{{ vault_mysql_root_password }}"
+mysql_root_password_update: true
+mysql_users:
+    - name: "{{ vault_mysql_user }}"
+      password: "{{ vault_mysql_password }}"
+      priv: "{{ vault_mysql_database }}.*:CREATE,SELECT,INSERT,UPDATE,DELETE,CREATE TEMPORARY TABLES,EXECUTE"
+      state: present
+
+mysql_databases:
+    - name: "{{ vault_mysql_database }}"
+      collation: "utf8_general_ci"
+      encoding: "utf8"
+      replicate: 0
+
+# Elasticsearch vars
+elasticsearch_extra_options: |
+    cluster.routing.allocation.disk.threshold_enabled: false
+    cluster.name: {{ project_name }}_es1
+    node.name: elk-1
+    discovery.type: single-node
+
+# Composer vars
+composer_global_packages:
+    - { name: "wp-cli/wp-cli-bundle", release: "@stable" }

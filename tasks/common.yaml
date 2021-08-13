@@ -1,0 +1,72 @@
+---
+-   name: Gather package facts
+    no_log: true
+    package_facts:
+        manager: apt
+
+-   name: Set timezone
+    command: timedatectl set-timezone Europe/Amsterdam
+
+-   name: Install ntp
+    when: "'ntp' not in ansible_facts.packages"
+    apt:
+        name: ntp
+        state: present
+        update_cache: yes
+
+-   name: Create web directory structure
+    file:
+        path: "{{ project_docroot }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: 0775
+        recurse: yes
+
+-   name: Create nginx cache folder
+    file:
+        path: "/opt/nginx/cache"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: 0775
+        recurse: yes
+
+-   name: Add ssh user to www-data group
+    user:
+        name: "{{ ansible_ssh_user }}"
+        group: www-data
+
+-   name: set umask to 002 in login.defs
+    lineinfile:
+        dest: '/etc/login.defs'
+        regexp: "UMASK"
+        line: "UMASK 002"
+        state: present
+
+-   name: Install extra packages
+    when: item not in ansible_facts.packages
+    apt:
+        name: "{{ item }}"
+        force_apt_get: false
+        state: present
+    loop:
+        - zip
+        - unzip
+        - memcached
+        - acl
+        - certbot
+        - python3-certbot-nginx
+
+-   name: Install imagemagick
+    when: "'imagemagick' not in ansible_facts.packages"
+    apt:
+        name: imagemagick
+        state: present
+
+-   name: Install JPEGOptim
+    when: "'jpegoptim' not in ansible_facts.packages"
+    apt:
+        force_apt_get: false
+        name: jpegoptim
+        state: present

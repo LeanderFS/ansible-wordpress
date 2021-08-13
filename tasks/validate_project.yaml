@@ -1,0 +1,18 @@
+---
+- assert:
+      fail_msg: project_name has invalid value, please check project.yaml
+      quiet: yes
+      that:
+          - project_name is match('^[a-zA-Z0-9-_]+$')
+
+- assert:
+      fail_msg: project_domain has invalid value, please check project.yaml
+      quiet: yes
+      that:
+          - project_domain is match('^([a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+.*)$')
+
+- assert:
+      fail_msg: project_php_version has invalid value, please check project.yaml
+      quiet: yes
+      that:
+          - project_php_version is match('^\d\.\d$')

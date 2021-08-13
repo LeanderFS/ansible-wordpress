@@ -1,0 +1,8 @@
+---
+
+- name: Create WP cronjob
+  cron:
+      name: "WP CRON"
+      user: "{{ ansible_ssh_user }}"
+      minute: "*/10"
+      job: "wp --path={{ project_docroot }}/wp cron event run --due-now > /dev/null 2>&1"

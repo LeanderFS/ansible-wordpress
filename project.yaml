@@ -1,0 +1,13 @@
+---
+# Site specific vars
+
+# The project name, can only contain letters, numbers and hyphens
+project_name:
+project_nicename:
+# The project domain without any http:// prefixes
+project_domain:
+project_docroot: "/var/www/{{ project_name }}/current/web"
+project_administrator_email:
+
+# PHP Vars
+project_php_version: "7.4"

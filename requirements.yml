@@ -1,0 +1,14 @@
+---
+- src: geerlingguy.nginx
+
+- src: geerlingguy.php-versions
+
+- src: geerlingguy.php
+
+- src: geerlingguy.mysql
+
+- src: geerlingguy.composer
+
+- src: geerlingguy.java
+
+- src: geerlingguy.elasticsearch

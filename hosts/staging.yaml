@@ -1,0 +1,8 @@
+---
+webservers:
+    hosts:
+        staging:
+            ansible_connection: ssh
+            ansible_host:
+            ansible_user:
+            ansible_python_interpreter: python3
